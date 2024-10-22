@@ -6,7 +6,7 @@ I found the idea in a broken source code without the right colors. After I analy
 
 ## Screenshot
 
-![Fire_Screenshot](https://github.com/user-attachments/assets/a0fce99f-2159-42e8-8d95-b8d196e78628)
+![Fire_Screenshot](https://github.com/user-attachments/assets/58401fc5-1620-48b0-8246-5d4ce171d110)
 
 ## Filedescriptions
 ### fire16xx.pas
