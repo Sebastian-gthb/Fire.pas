@@ -1,4 +1,4 @@
-# Fire32.pas
+# Fire.pas
 Turbo Pascal assembly: a fire graphic demo on 320x200 256 colors
 
 My wrote this Tubro Pascal programms from September 1997 up to December 1999.
