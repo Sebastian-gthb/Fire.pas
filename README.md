@@ -14,7 +14,7 @@ These are the 16bit version of the program.
 
 The fire1670.pas is the first version in assembly only.
 
-The versions fire1681.pas are maybe the best version and the other under construction (i'm not realy sure).
+The versions fire1691.pas are the best version and the other are older versions.
 
 ### fire32xx.pas
 These are the 32bit versions of the program.
