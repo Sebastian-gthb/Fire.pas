@@ -1,7 +1,7 @@
 # Fire.pas
 Turbo Pascal assembly: a fire graphic demo on 320x200 256 colors
 
-My wrote this Tubro Pascal programms from September 1997 up to December 1999.
+I wrote this Tubro Pascal programms from September 1997 up to December 1999.
 I found the idea in a broken source code without the right colors. After I analysed the code, I write a completly new code in assembly and optimized and speed up to run this slowly on a 80286 at 16Mhz.
 
 ## Screenshot
@@ -14,7 +14,7 @@ These are the 16bit version of the program.
 
 The fire1670.pas is the first version in assembly only.
 
-The versions fire1691.pas are the best version and the other are older versions.
+The versions fire1691.pas are the best version and the other are older versions. This version get his last update on August 2026.
 
 ### fire32xx.pas
 These are the 32bit versions of the program.
