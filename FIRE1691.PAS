@@ -48,7 +48,7 @@ asm
    add  di,3
    inc  dl
    loop @@004
-   mov  cx,99           {die Åbrigen 66 Farben auf 63,63,63 setzen = 99mal 2Bytes=1Word}
+   mov  cx,99           {die uebrigen 66 Farben auf 63,63,63 setzen = 99mal 2Bytes=1Word}
    mov  ax,03F3Fh
 @@005:
    mov  [ds:di],ax
@@ -66,8 +66,8 @@ asm
    mov  ax,0A000h
    mov  es,ax
 
-   mov  di,0          {LôSCHE SPEICHER}
-   mov  dx,0
+   xor  di,di          {LOESCHE SPEICHER}
+   xor  dx,dx
    mov  cx,32768
 @@006:
    mov  [ds:di],dx
@@ -79,8 +79,8 @@ asm
    push ax            {Zuvallszahl in Stack sichern}
    push bx
 
-@@010:                {setze neue wei·e Punkte am untern Bildrand}
-   mov  cx,60        {Setze ZÑhler auf XXX}
+@@010:                {setze neue wei√°e Punkte am untern Bildrand}
+   mov  cx,60         {Setze Zaehler auf XXX}
 @@011:
    pop  bx
    pop  ax
@@ -100,13 +100,13 @@ asm
    add  bx,di            {\             }
    adc  ax,si            {/ add eax,ebx }
 
-  add  bx,62e9h         {\                   }
-  adc  ax,3619h         {/ add eax,361962E9h }
+  add  bx,62e9h          {\                   }
+  adc  ax,3619h          {/ add eax,361962E9h }
 
    push ax
    push bx
 
-   push cx      {Sichere ZÑhler}
+   push cx      {Sichere Zaehler}
 
    mov  cx,320
    xor  dx,dx
@@ -120,20 +120,20 @@ asm
    mov  [ds:di+62401+bx],dx
    mov  [ds:di+62720+bx],dx
 
-   pop  cx      {Lade ZÑhler wieder}
+   pop  cx      {Lade Zaehler wieder}
    loop @@011
 
 
    mov  di,1        {Berechne Bild}
-   xor  ax,ax
    xor  bx,bx
    xor  cx,cx
    mov  si,31520
 
+   mov  dx,Word ptr [ds:di+639]
 @@100:
-   mov  ax,Word ptr [ds:di+639]
-   mov  bl,ah
- xor  ah,ah
+   xor  ah,ah      {ah auf 0 setzen, da es aus dem letzten Lauf noch Werte enthalten kann}
+   mov  al,dl      {dx hat noch Wert von di+641 aus letzem Lauf, was jetzt di+639 ist}
+   mov  bl,dh
    mov  dx,Word ptr [ds:di+319]
    mov  cl,dl
    add  ax,cx
@@ -144,11 +144,6 @@ asm
    mov  cl,dl
    add  ax,cx
    add  bx,cx
-   mov  cl,dh
-   add  bx,cx
-   mov  dx,Word ptr [ds:di+641]
-   mov  cl,dl
-   add  ax,cx
    mov  cl,dh
    add  bx,cx
    mov  dx,Word ptr [ds:di+959]
@@ -163,6 +158,11 @@ asm
    add  bx,cx
    mov  cl,dh
    add  bx,cx
+   mov  dx,Word ptr [ds:di+641]   {dx ist im nachsten Lauf der Wert von ds:di+639 und muss nicht noch mal gelesen werden}
+   mov  cl,dl
+   add  ax,cx
+   mov  cl,dh
+   add  bx,cx
 
    shr  ax,3         {Teile ersten Punkt durch 8 ; wenn schon 0...}
    jz @@101          {...dann springe zu @@101...}
@@ -175,14 +175,16 @@ asm
    mov  ah,bl
    mov  Word ptr [ds:di],ax    {Schreibe beide Punkte in Puffer}
    mov  Word ptr [es:di],ax    {Schreibe beide Punkte in Videospeicher (4B 3T}
-   add  di,2
+   {add  di,2 }            {4B 3T}
+   inc  di        {2x 1B 2T=2B 4T}
+   inc  di
    dec  si
    jnz @@100
 
 
                     {kopiere Puffer in Videospeicher}
    {xor  di,di    }
-   {mov  cx,32000 } {fÅr alle 64.000 Byte bei 320x200}
+   {mov  cx,32000 } {fuer alle 64.000 Byte bei 320x200}
    {rep  movsw    } {1B 5T}
 
 
