@@ -16,6 +16,9 @@ The fire1670.pas is the first version in assembly only.
 
 The versions fire1691.pas are the best version and the other are older versions. This version get his last update on August 2026.
 
+### fire16xxB.pas
+There are two benchmark versions, market with a B at the end of the filename. They have additional code and run only 200 frames. At the end they printing 8 byte hex decimal values like "1227112d12271C26". The first 4 Byte are the start time of the program in hour,minute,second,1/100 seconds. The last 4 Byte are the same from the end of the program. So you can calculate the difference for drawing 200 frames (and do the other stuff in the program).
+
 ### fire32xx.pas
 These are the 32bit versions of the program.
 
