@@ -18,11 +18,10 @@ asm
    mov  ax,13h       {SETZE GRAFIKMODUS 13h}
    int  10h
 
-                     {erzeuge Palette}
-   mov  cx,64
+   mov  cx,64        {erzeuge Palette}
    mov  al,63
-   mov  dx,0
-   mov  di,0
+   xor  dx,dx
+   xor  di,di
 @@002:
    mov  [ds:di],dl      {r 0...63}
    mov  [ds:di+1],dh    {g 0}
@@ -57,9 +56,9 @@ asm
 
    mov  ax,ds        {SETZE PALETTE}
    mov  es,ax
-   mov  dx,0
+   xor  dx,dx
    mov  ax,1012h
-   mov  bx,0
+   xor  bx,bx
    mov  cx,100h
    int  10h
 
@@ -79,7 +78,7 @@ asm
    push ax            {Zuvallszahl in Stack sichern}
    push bx
 
-@@010:                {setze neue weiáe Punkte am untern Bildrand}
+@@010:                {setze neue weisse Punkte am untern Bildrand}
    mov  cx,60         {Setze Zaehler auf XXX}
 @@011:
    pop  bx
@@ -100,8 +99,8 @@ asm
    add  bx,di            {\             }
    adc  ax,si            {/ add eax,ebx }
 
-  add  bx,62e9h          {\                   }
-  adc  ax,3619h          {/ add eax,361962E9h }
+   add  bx,62e9h         {\                   }
+   adc  ax,3619h         {/ add eax,361962E9h }
 
    push ax
    push bx
@@ -113,7 +112,7 @@ asm
    div  cx
    mov  bx,dx
 
-   mov  di,0
+   xor  di,di
    mov  dx,0FFFFh
    mov  [ds:di+62080+bx],dl
    mov  [ds:di+62399+bx],dx
@@ -122,7 +121,6 @@ asm
 
    pop  cx      {Lade Zaehler wieder}
    loop @@011
-
 
    mov  di,1        {Berechne Bild}
    xor  bx,bx
@@ -181,24 +179,22 @@ asm
    dec  si
    jnz @@100
 
-
                     {kopiere Puffer in Videospeicher}
    {xor  di,di    }
    {mov  cx,32000 } {fuer alle 64.000 Byte bei 320x200}
    {rep  movsw    } {1B 5T}
 
-
    in  al,60h
    cmp al,1
    jnz @@010
 
-   pop  bx           {Zuvallszahl aus Stack entfernen}
+   pop  bx               {Zuvallszahl aus Stack entfernen}
    pop  ax
 
    mov  ax,03h           {SETZE ALTEN GRAFIKMODUS}
    int  10h
 
-   mov  ax,ds
+   mov  ax,ds            {Speicher wieder freigeben}
    mov  es,ax
    mov  ah,49h
    int  21h
