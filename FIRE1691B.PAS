@@ -181,18 +181,18 @@ asm
    dec  bx           {...sonst ziehe 1 ab}
 @@102:
    mov  ah,bl
-   mov  Word ptr [ds:di],ax    {Schreibe beide Punkte in Puffer}
-   mov  Word ptr [es:di],ax    {Schreibe beide Punkte in Videospeicher (4B 3T}
+   mov  Word ptr [ds:di],ax      {Schreibe beide Punkte in Puffer}
+   {mov  Word ptr [es:di],ax }   {Schreibe beide Punkte in Videospeicher (4B 3T)}
    {add  di,2 }            {4B 3T}
    inc  di        {2x 1B 2T=2B 4T}
    inc  di
    dec  si
    jnz @@100
 
-                    {kopiere Puffer in Videospeicher}
-   {xor  di,di    }
-   {mov  cx,32000 } {fuer alle 64.000 Byte bei 320x200}
-   {rep  movsw    } {1B 5T}
+                  {kopiere Puffer in Videospeicher - ist minimal schneller}
+   xor  di,di    
+   mov  cx,32000  {fuer alle 64.000 Byte bei 320x200}
+   rep  movsw     {1B 5T}
 
    in  al,60h
    cmp al,1
