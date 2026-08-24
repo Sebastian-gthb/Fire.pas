@@ -27,13 +27,13 @@ asm
    int  10h
 
    mov  cx,64        {erzeuge Palette}
-   mov  al,63
+   mov  ax,03F3Fh
+   xor  bx,bx
    xor  dx,dx
    xor  di,di
 @@002:
    mov  [ds:di],dl      {r 0...63}
-   mov  [ds:di+1],dh    {g 0}
-   mov  [ds:di+2],dh    {b 0}
+   mov  [ds:di+1],bx    {g 0, b 0}
    add  di,3
    inc  dl
    loop @@002
@@ -49,14 +49,12 @@ asm
    mov  cx,63
    mov  dl,1
 @@004:
-   mov  [ds:di],al      {r 63}
-   mov  [ds:di+1],al    {g 63}
+   mov  [ds:di],ax      {r 63, g 63}
    mov  [ds:di+2],dl    {b 1..63}
    add  di,3
    inc  dl
    loop @@004
    mov  cx,99           {die uebrigen 66 Farben auf 63,63,63 setzen = 99mal 2Bytes=1Word}
-   mov  ax,03F3Fh
 @@005:
    mov  [ds:di],ax
    add  di,2
