@@ -84,6 +84,10 @@ asm
    push ax            {Zuvallszahl in Stack sichern}
    push bx
 
+      {Benchmark}
+      mov ax,200             {Benchmark 200=ok}
+      mov [ds:di+65000],ax   {setze Zaehler fuer Anzahl durchlaeufe}
+
 @@010:                {setze neue weisse Punkte am untern Bildrand}
    mov  cx,60         {Setze Zaehler auf XXX}
 @@011:
