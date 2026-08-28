@@ -80,9 +80,7 @@ asm
    loop @@006
 
    mov  ax,02D7Ah     {bel. Zahl}
-   mov  bx,0CD12h
    push ax            {Zuvallszahl in Stack sichern}
-   push bx
 
       {Benchmark}
       mov ax,200             {Benchmark 200=ok}
@@ -91,51 +89,42 @@ asm
 @@010:                {setze neue weisse Punkte am untern Bildrand}
    mov  cx,60         {Setze Zaehler auf XXX}
 @@011:
-   pop  bx
    pop  ax
-
-   mov  si,ax            {\ eax = ax,bx  ebx = si,di }
-   mov  di,bx            {/ mov ebx,eax              }
-
-   mov  dl,ah            {\              }
-   mov  ah,al            { |             }
-   mov  al,bh            { |             }
-   mov  bh,bl            { \             }
-   xor  bl,bl            { / shl eax,7   }
-   rcr  dl,1             { |             }
-   rcr  ax,1             { |             }
-   rcr  bx,1             {/              }
-
-   add  bx,di            {\             }
-   adc  ax,si            {/ add eax,ebx }
-
-   add  bx,62e9h         {\                   }
-   adc  ax,3619h         {/ add eax,361962E9h }
-
+   mov  si,ax
+   shr  ax,1
+   add  ax,si
+   add  ax,dx      {dx hat in jedem Bild einmalig einen Wert aus der letzten Bildberechnung}
    push ax
-   push bx
 
-   push cx      {Sichere Zaehler}
+   {mov  si,cx  }    {Sichere Zaehler}
 
-   mov  cx,320
+   {mov  cx,320 }
+   {xor  dx,dx  }
+   {div  cx     }     {AX:320 ... Rest in DX}
+   {mov  bx,dx  }
+
+   xor  bx,bx       {generate a nuber between 0 and 319}
+   mov  bl,al       {use 8bit = 256 from al}
+   shr  ax,10       {use 6bit = 64 from the highes bits in ax}
+   add  bx,ax       {add 256 + 64 = 320}
+   dec  bx          {dec bx for maximum of 319}
+
+   mov  di,62080
+   add  di,bx
    xor  dx,dx
-   div  cx
-   mov  bx,dx
-
-   xor  di,di
-   mov  dx,0FFFFh
-   mov  [ds:di+62080+bx],dl
-   mov  [ds:di+62399+bx],dx
-   mov  [ds:di+62401+bx],dx
-   mov  [ds:di+62720+bx],dx
-
-   pop  cx      {Lade Zaehler wieder}
+   dec  dx       {dx=0FFFFh}
+   mov  [ds:di],dl
+   mov  [ds:di+318],dx
+   mov  [ds:di+320],dx
+   {mov  cx,si    }  {Lade Zaehler zurueck in cx fuer loop}
+   mov  [ds:di+638],dx
    loop @@011
 
    mov  di,1        {Berechne Bild}
    xor  bx,bx
    xor  cx,cx
    mov  si,31520
+   nop
 
    mov  dx,Word ptr [ds:di+639]
 @@100:
@@ -181,7 +170,7 @@ asm
    dec  bx           {...sonst ziehe 1 ab}
 @@102:
    mov  ah,bl
-   mov  Word ptr [ds:di],ax      {Schreibe beide Punkte in Puffer}
+   mov  Word ptr [ds:di],ax    {Schreibe beide Punkte in Puffer}
    {mov  Word ptr [es:di],ax }   {Schreibe beide Punkte in Videospeicher (4B 3T)}
    {add  di,2 }            {4B 3T}
    inc  di        {2x 1B 2T=2B 4T}
@@ -207,8 +196,7 @@ asm
 @@103:                       {/             }
 
 
-   pop  bx               {Zuvallszahl aus Stack entfernen}
-   pop  ax
+   pop  ax               {Zuvallszahl aus Stack entfernen}
 
    mov  ax,03h           {SETZE ALTEN GRAFIKMODUS}
    int  10h
