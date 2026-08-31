@@ -2,9 +2,10 @@
    org 100h
 
 section .text
+   global _start
 
 
-start:
+_start:
 
    push ds
    push es
@@ -18,16 +19,18 @@ start:
       push dx
       push cx
 
-   mov ah, 4Ah             ; INT 21h, AH=4Ah: Resize Memory Block
-   mov bx, 64              ; Point to the very end of our code/data area 1024byte / 16 = 64
-   int 21h                 ; Call DOS
+;   mov ah, 4Ah             ; INT 21h, AH=4Ah: Resize Memory Block
+;   mov bx, 64              ; Point to the very end of our code/data area 1024byte / 16 = 64
+;   int 21h                 ; Call DOS
 
-   mov  ah,48h       ; Reserviere 64 kB Speicher
-   mov  bx,4096
-   int 21h
-   jnb @@001         ; wenn kein Fehler auftritt springe zu @@001
-   jmp @@999         ; sonst springe zum ENDE
-@@001:
+;   mov  ah,48h       ; Reserviere 64 kB Speicher
+;   mov  bx,4096
+;   int 21h
+;   jnb @@001         ; wenn kein Fehler auftritt springe zu @@001
+;   jmp @@999         ; sonst springe zum ENDE
+;@@001:
+   mov  ax,cs
+   add  ax,64         ;wir nutzen bei der .com Datei, das wir ein ganzen 64k Segment fuer uns haben. in den ersten 1024byte ist der code hier und dann nehmen wir uns den Rest als Framebuffer
    mov  ds,ax
 
    mov  ax,13h       ; SETZE GRAFIKMODUS 13h
@@ -91,7 +94,7 @@ start:
 
       ; Benchmark
       mov ax,200             ; Benchmark 200=ok
-      mov [ds:di+65000],ax   ; setze Zaehler fuer Anzahl durchlaeufe
+      mov [ds:di+64200],ax   ; setze Zaehler fuer Anzahl durchlaeufe
 
 @@010:                ; setze neue weisse Punkte am untern Bildrand
    mov  cx,60         ; Setze Zaehler auf XXX
@@ -196,7 +199,7 @@ start:
 
       jz @@103               ; \             
       mov ax,1               ;  |            
-      mov si,65000           ;  |            
+      mov si,64200           ;  |            
       sub [ds:si],ax         ;  | Code fuer  
       jnz @@010              ;  | Benchmark 
                              ;  |            
@@ -208,10 +211,10 @@ start:
    mov  ax,03h           ; SETZE ALTEN GRAFIKMODUS
    int  10h
 
-   mov  ax,ds            ; Speicher wieder freigeben
-   mov  es,ax
-   mov  ah,49h
-   int  21h
+;   mov  ax,ds            ; Speicher wieder freigeben
+;   mov  es,ax
+;   mov  ah,49h
+;   int  21h
 @@999:
 
       pop  bx        ; Benchmark: Zeitstempel vom Start zurueckholen
@@ -257,6 +260,9 @@ start:
    pop  di
    pop  es
    pop  ds
+
+   mov  ax,04C00h    ;exit .com file
+   int 21h
 
 section .data
 
