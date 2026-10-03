@@ -1,4 +1,6 @@
 ; compile with --> nasm F1692B.asm -fbin -o F1692B.com
+;   bits 16
+   cpu 286
    org 100h
 
 section .text
@@ -16,8 +18,11 @@ _start:
       ; AH=2Ch get system time  CH=hour, CL=minute, DH=second, DL=1/100sec
       mov  ah,2Ch
       int 21h
-      push dx
-      push cx
+      mov byte[cs:start_ms],dl     ; Start ms
+      mov byte[cs:start_s],dh      ; Start sek
+      mov byte[cs:start_m],cl      ; Start min
+      mov byte[cs:start_h],ch      ; Start h
+
 
 ;   mov ah, 4Ah             ; INT 21h, AH=4Ah: Resize Memory Block
 ;   mov bx, 64              ; Point to the very end of our code/data area 1024byte / 16 = 64
@@ -42,31 +47,31 @@ _start:
    xor  dx,dx
    xor  di,di
 @@002:
-   mov  [ds:di],dl      ; r 0...63
-   mov  [ds:di+1],bx    ; g 0, b 0
+   mov  [di],dl      ; r 0...63
+   mov  [di+1],bx    ; g 0, b 0
    add  di,3
    inc  dl
    loop @@002
    mov  cx,63
    mov  dl,1
 @@003:
-   mov  [ds:di],al      ; r 63
-   mov  [ds:di+1],dl    ; g 1..63
-   mov  [ds:di+2],dh    ; b 0
+   mov  [di],al      ; r 63
+   mov  [di+1],dl    ; g 1..63
+   mov  [di+2],dh    ; b 0
    add  di,3
    inc  dl
    loop @@003
    mov  cx,63
    mov  dl,1
 @@004:
-   mov  [ds:di],ax      ; r 63, g 63
-   mov  [ds:di+2],dl    ; b 1..63
+   mov  [di],ax      ; r 63, g 63
+   mov  [di+2],dl    ; b 1..63
    add  di,3
    inc  dl
    loop @@004
    mov  cx,99           ; die uebrigen 66 Farben auf 63,63,63 setzen = 99mal 2Bytes=1Word
 @@005:
-   mov  [ds:di],ax
+   mov  [di],ax
    add  di,2
    loop @@005
 
@@ -83,21 +88,24 @@ _start:
 
    xor  di,di          ; LOESCHE SPEICHER
    xor  dx,dx
-   mov  cx,32768
+   mov  cx,32000       ; bei .com Datei keine 64kB loeschen, sondern nur 32000w = 64000byte, sonst wird der Stack ueberschrieben... der liegt scheinbar im naechsten Segment
 @@006:
-   mov  [ds:di],dx
+   mov  [di],dx
    add  di,2
    loop @@006
 
    mov  ax,02D7Ah     ; bel. Zahl
    push ax            ; Zuvallszahl in Stack sichern
 
-      ; Benchmark
-      mov ax,200             ; Benchmark 200=ok
-      mov [ds:di+64200],ax   ; setze Zaehler fuer Anzahl durchlaeufe
+      ; Benchmark      --> nicht mehr notwendig, da wir mit dem .data section arbeiten und dort die Variable bereits auf 200 gesetzt ist
+      ;mov  di,64200
+      ;mov  ax,200             ; Benchmark 200=ok
+      ;mov  [di],ax   ; setze Zaehler fuer Anzahl durchlaeufe    Hinweis: [ds:di+64200] = di-0x538h, da das Vorzeichen beruecksichtigt wird!!!!
 
+   align 2
 @@010:                ; setze neue weisse Punkte am untern Bildrand
    mov  cx,60         ; Setze Zaehler auf XXX
+   align 2
 @@011:
    pop  ax
    mov  si,ax
@@ -123,49 +131,49 @@ _start:
    add  di,bx
    xor  dx,dx
    dec  dx       ; dx=0FFFFh
-   mov  [ds:di],dl
-   mov  [ds:di+318],dx
-   mov  [ds:di+320],dx
+   mov  [di],dl           ;[ds:di]
+   mov  [di+318],dx       ;[ds:di+xxx]
+   mov  [di+320],dx       ;[ds:di+xxx]
    ; mov  cx,si      ; Lade Zaehler zurueck in cx fuer loop
-   mov  [ds:di+638],dx
+   mov  [di+638],dx       ;[ds:di+xxx]
    loop @@011
 
-   mov  di,1        ; Berechne Bild
+   mov  di,1        ; Berechne Bild    <-- vielleicht mal auf 0 setzen?
    xor  bx,bx
    xor  cx,cx
-   mov  si,31520
-   nop
+   mov  si,31520      ;warum eigentlich 31520? vergessen...
 
-   mov  dx,[ds:di+639]
+   mov  dx,[di+639]
+   align 2
 @@100:
    xor  ah,ah      ; ah auf 0 setzen, da es aus dem letzten Lauf noch Werte enthalten kann
    mov  al,dl      ; dx hat noch Wert von di+641 aus letzem Lauf, was jetzt di+639 ist
    mov  bl,dh
-   mov  dx,[ds:di+319]
+   mov  dx,[di+319]     ;ds:di+xxx
    mov  cl,dl
    add  ax,cx
    mov  cl,dh
    add  ax,cx
    add  bx,cx
-   mov  dx,[ds:di+321]
+   mov  dx,[di+321]     ;ds:di+xxx
    mov  cl,dl
    add  ax,cx
    add  bx,cx
    mov  cl,dh
    add  bx,cx
-   mov  dx,[ds:di+959]
+   mov  dx,[di+959]     ;ds:di+xxx
    mov  cl,dl
    add  ax,cx
    mov  cl,dh
    add  ax,cx
    add  bx,cx
-   mov  dx,[ds:di+961]
+   mov  dx,[di+961]     ;ds:di+xxx
    mov  cl,dl
    add  ax,cx
    add  bx,cx
    mov  cl,dh
    add  bx,cx
-   mov  dx,[ds:di+641]   ; dx ist im nachsten Lauf der Wert von ds:di+639 und muss nicht noch mal gelesen werden
+   mov  dx,[di+641]   ; dx ist im nachsten Lauf der Wert von ds:di+639 und muss nicht noch mal gelesen werden
    mov  cl,dl
    add  ax,cx
    mov  cl,dh
@@ -180,9 +188,9 @@ _start:
    dec  bx           ; ...sonst ziehe 1 ab
 @@102:
    mov  ah,bl
-   mov  [ds:di],ax    ; Schreibe beide Punkte in Puffer
-   ; mov  [es:di],ax    ; Schreibe beide Punkte in Videospeicher (4B 3T)
-   ; add  di,2             ; 4B 3T
+   mov  [di],ax    ; Schreibe beide Punkte in Puffer
+   ;mov  [es:di],ax    ; Schreibe beide Punkte in Videospeicher (4B 3T)
+   ;add  di,2             ; 4B 3T
    inc  di        ; 2x 1B 2T=2B 4T
    inc  di
    dec  si
@@ -191,16 +199,17 @@ _start:
                   ; kopiere Puffer in Videospeicher - ist minimal schneller
    xor  di,di    
    mov  cx,32000  ; fuer alle 64.000 Byte bei 320x200
-   rep  movsw     ; 1B 5T
+   rep  movsw     ; 1B 5T        mov [es:di],[ds:si]
 
    in  al,60h
    cmp al,1
-      ; jnz @@010     ; fuer Benschmark deaktiviert
+   ;jnz @@010      ; fuer Benschmark deaktiviert
 
       jz @@103               ; \             
-      mov ax,1               ;  |            
-      mov si,64200           ;  |            
-      sub [ds:si],ax         ;  | Code fuer  
+      ;mov ax,1               ;  |            
+      ;mov si,64200           ;  |            
+      ;sub [si],ax         ;  | Code fuer
+      sub word[cs:count],1
       jnz @@010              ;  | Benchmark 
                              ;  |            
 @@103:                       ; /             
@@ -217,35 +226,95 @@ _start:
 ;   int  21h
 @@999:
 
-      pop  bx        ; Benchmark: Zeitstempel vom Start zurueckholen
-      call @@1000
-      pop  bx
-      call @@1000
-      ; AH=2Ch get system time  CH=hour, CL=minute, DH=second, DL=1/100sec
-      mov  ah,02Ch
-      int 21h
-      mov  bx,cx
-      mov  cx,dx
-      call @@1000
-      mov  bx,cx
-      call @@1000
-      jmp  @@1111
+;      pop  bx        ; Benchmark: Zeitstempel vom Start zurueckholen
+;      call @@print_BX_hex
+;      pop  bx
+;      call @@print_BX_hex
+;      ; AH=2Ch get system time  CH=hour, CL=minute, DH=second, DL=1/100sec
+;      mov  ah,02Ch
+;      int 21h
+;      mov  bx,cx
+;      mov  cx,dx
+;      call @@print_BX_hex
+;      mov  bx,cx
+;      call @@print_BX_hex
+;      jmp  @@exit
 
-@@1000:                ; function to split a word in to 4 character calls
+
+      mov  ah,02Ch     ; AH=2Ch get system time  CH=hour, CL=minute, DH=second, DL=1/100sec
+      int 21h
+                       ; lege die Werte in der Verarbeitungsreihenfolge im Stack ab
+      mov byte[cs:stop_ms],dl      ; Stopp ms
+      mov byte[cs:stop_s],dh       ; Stopp sek 
+      mov byte[cs:stop_m],cl       ; Stopp min
+      mov byte[cs:stop_h],ch       ; Stopp h
+
+      xor  ax,ax       ; Arbeitsregister auf 0 setzen
+      xor  bx,bx
+      xor  cx,cx
+                    ; Step 1: Stunden
+      mov  bl,[cs:start_h]          ; lade Start h in bx
+      mov  al,[cs:stop_h]          ; lade Stopp h in ax
+      sub  ax,bx
+      jnc @@kein_Tagesueberlauf
+      mov  ax,1
+@@kein_Tagesueberlauf:
+      mul  word[cs:sec_per_h]           ; mul ax * 3600 -> Ergebnis in ax+dx (dx = higher bits)
+      mov  cx,ax       ; Egebnis in CX kopieren... hier sammeln wir das Ergebnis
+      xor  ax,ax       ; ax wieder auf 0 setzen um es wieder zu verwednen
+
+                    ; Step 2: Minuten
+      mov  bl,[cs:start_m]          ; lade Start min in bx
+      mov  al,[cs:stop_m]          ; lade Stopp min in ax
+      sub  al,bl
+      imul byte[cs:sec_per_min]           ; vorzeichen mul al * 60 -> Ergebnis in ax
+      add  cx,ax
+      xor  ax,ax
+
+                    ; Step 3: Sekunden
+      mov  bl,[cs:start_s]          ; lade Start sek in bx
+      mov  al,[cs:stop_s]          ; lade Stopp sek in ax
+      sub  ax,bx
+      add  cx,ax
+      xor  ax,ax
+
+                    ; Step 4: Millisekunden
+      mov  bl,[cs:start_ms]          ; lade Start ms in bx
+      mov  al,[cs:stop_ms]          ; lade Stopp ms in ax
+      sub  al,bl
+      jnc @@kein_Millisekueberlauf
+      dec  cx
+      add  al,100
+@@kein_Millisekueberlauf:
+
+         ; CX = Differenz zwischen Start und Stopp in Sekunden
+         ; AL = den zusaetzlichen Millisekundenwert der Differenz
+
+      push ax
+      mov  bx,cx
+      call @@print_BX_hex
+      xor  bx,bx
+      pop  ax
+      mov  bl,al                  ;lade gesicherten AL Wert in BL
+      call @@print_BX_hex
+
+      jmp @@exit
+
+@@print_BX_hex:                ; function to split a word in to 4 character calls
       mov  dl,bh
       shr  dl,4
-      call @@1010
+      call @@print_one_hex_char
       mov  dl,bh
       and  dl,00Fh
-      call @@1010
+      call @@print_one_hex_char
       mov  dl,bl
       shr  dl,4
-      call @@1010
+      call @@print_one_hex_char
       mov  dl,bl
       and  dl,00Fh
-      call @@1010
+      call @@print_one_hex_char
       ret
-@@1010:                 ; function print half byte (dl) as hex
+@@print_one_hex_char:                 ; function print half byte (dl) as hex
       add  dl,030h
       cmp  dl,039h
       jna @@1011
@@ -254,7 +323,9 @@ _start:
       mov  ah,02h
       int 21h
       ret
-@@1111:
+
+
+@@exit:
 
    pop  si
    pop  di
@@ -265,5 +336,17 @@ _start:
    int 21h
 
 section .data
+align 2
+count        dw  200    ; Anzahl zu berechnender Bilder fuer Benchmark
+stop_ms      db  0      ; Stopp ms
+start_ms     db  0      ; Start ms
+stop_s       db  0      ; Stopp sek 
+start_s      db  0      ; Start sek
+stop_m       db  0      ; Stopp min
+start_m      db  0      ; Start min
+stop_h       db  0      ; Stopp h
+start_h      db  0      ; Start h
+sec_per_h    dw  3600   ; Sekunden pro Stunde fuer Multiplikation
+sec_per_min  db  60     ; Sekunden pro Minute fuer Multipliktion
 
 section .bss
